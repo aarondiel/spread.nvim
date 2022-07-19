@@ -32,49 +32,6 @@ local function get_fields(node)
 	return fields
 end
 
---
--- local function append_str(str, appendix)
--- 	return str .. appendix
--- end
---
--- local function remove_string_from_end(str, appendix)
--- 	return string.sub(str, 1, #str - #appendix)
--- end
---
--- local function concat(...)
--- 	local result = {}
---
--- 	for _, current_table in pairs({ ... }) do
--- 		for _, element in ipairs(current_table) do
--- 			table.insert(result, element)
--- 		end
--- 	end
---
--- 	return result
--- end
---
-local function map(tbl, func, ...)
-	local result = {}
-
-	for _, element in ipairs(tbl) do
-		table.insert(result, func(element, ...))
-	end
-
-	return result
-end
-
-local function filter(tbl, func)
-	local result = {}
-
-	for _, element in tbl do
-		if func(element) then
-			table.insert(result, element)
-		end
-	end
-
-	return result
-end
-
 local function get_indent_count(line)
 	return ts_indent.get_indent(line) / vim.o.tabstop
 end
