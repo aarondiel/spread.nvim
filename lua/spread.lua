@@ -8,19 +8,22 @@ local containing_nodes = {
 	parameters = true,
 	formal_parameters = true,
 	array = true,
-	object = true
+	object = true,
+	type_arguments = true
 }
 
 local starting_fields = {
 	["{"] = "{ ",
 	["["] = "[ ",
-	["("] = "("
+	["("] = "(",
+	["<"] = "<"
 }
 
 local ending_fields = {
 	["}"] = " }",
 	["]"] = " ]",
-	[")"] = ")"
+	[")"] = ")",
+	[">"] = ">"
 }
 
 local delimiters = {
