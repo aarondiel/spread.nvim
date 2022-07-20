@@ -103,14 +103,12 @@ end
 function spread.out()
 	local starting_node = ts_utils.get_node_at_cursor()
 	local node = get_containing_node(starting_node)
-	vim.pretty_print(node)
 
 	if node == nil then
 		return
 	end
 
 	local fields = get_fields(node)
-	vim.pretty_print(fields)
 	local start_row, start_col, end_row, end_col = node:range()
 	local indent_count = get_indent_count(start_row + 1)
 	local replace_text = parse_fields_spread(fields, indent_count, {})
