@@ -4,7 +4,8 @@ local ts_indent = require("nvim-treesitter.indent")
 
 local containing_nodes = {
 	table_constructor = true,
-	arguments = true
+	arguments = true,
+	parameters = true
 }
 
 local starting_fields = {
