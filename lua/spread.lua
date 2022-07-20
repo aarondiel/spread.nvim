@@ -4,7 +4,23 @@ local ts_indent = require("nvim-treesitter.indent")
 
 local containing_nodes = {
 	table_constructor = true,
-	parameters = true
+	arguments = true
+}
+
+local starting_fields = {
+	["{"] = "{ ",
+	["["] = "[ ",
+	["("] = "("
+}
+
+local ending_fields = {
+	["}"] = " }",
+	["]"] = " ]",
+	[")"] = ")"
+}
+
+local delimiters = {
+	[","] = ", "
 }
 
 local function get_containing_node(node)
@@ -50,12 +66,12 @@ local function parse_fields_spread(fields, indent_count)
 	while #fields ~= 0 do
 		local field = table.remove(fields, 1)
 
-		if field == "{" then
+		if starting_fields[field] ~= nil then
 			table.insert(result, field)
-		elseif field == "}" then
+		elseif delimiters[field] ~= nil then
+			result[#result] = result[#result] .. field
+		elseif ending_fields[field] ~= nil then
 			table.insert(result, indent(field, indent_count))
-		elseif field == "," then
-			result[#result] = result[#result] .. ","
 		else
 			table.insert(result, indent(field, indent_count + 1))
 		end
@@ -70,12 +86,12 @@ local function parse_fields_combine(fields)
 	while #fields ~= 0 do
 		local field = table.remove(fields, 1)
 
-		if field == "," then
-			result = result .. field .. " "
-		elseif field == "{" then
-			result = result .. field .. " "
-		elseif field == "}" then
-			result = result .. " " .. field
+		if starting_fields[field] ~= nil then
+			result = result .. starting_fields[field]
+		elseif delimiters[field] ~= nil then
+			result = result .. delimiters[field]
+		elseif ending_fields[field] ~= nil then
+			result = result .. ending_fields[field]
 		else
 			result = result .. field
 		end
@@ -87,12 +103,14 @@ end
 function spread.out()
 	local starting_node = ts_utils.get_node_at_cursor()
 	local node = get_containing_node(starting_node)
+	vim.pretty_print(node)
 
 	if node == nil then
 		return
 	end
 
 	local fields = get_fields(node)
+	vim.pretty_print(fields)
 	local start_row, start_col, end_row, end_col = node:range()
 	local indent_count = get_indent_count(start_row + 1)
 	local replace_text = parse_fields_spread(fields, indent_count, {})
