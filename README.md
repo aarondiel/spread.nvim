@@ -1,4 +1,6 @@
-# spread.nvim
+<h1 align="center">spread.nvim</h1>
+
+<img align="center" src="assets/spread.webp"/>
 
 **WORK IN PROGRESS**
 

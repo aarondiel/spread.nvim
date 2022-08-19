@@ -9,7 +9,9 @@ local containing_nodes = {
 	formal_parameters = true,
 	array = true,
 	object = true,
-	type_arguments = true
+	type_arguments = true,
+	array_pattern = true,
+	named_imports = true
 }
 
 local starting_fields = {
