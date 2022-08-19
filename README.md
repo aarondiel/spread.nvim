@@ -1,16 +1,20 @@
 <h1 align="center">spread.nvim</h1>
 
-<img align="center" src="assets/spread.webp"/>
+<p align="center"><img width=500 src="assets/spread.webp"/></p>
 
-**WORK IN PROGRESS**
+<p align="center">
+	a plugin to refactor and spread out objects, arrays, parameter lists, etc
+	onto multiple lines.
+</p>
 
-a plugin to refactor and spread out objects, arrays, parameter lists, etc onto
-multiple lines
-
-this plugin uses treesitter so be sure to also install
-[nvim-treesitter][nvim-treesitter]
+<p align="center">
+	this plugin is still <em>work in progress</em>, so don't expect it to work
+	with every language and container.
+</p>
 
 ## installation
+
+> this plugin uses [treesitter][nvim-treesitter] so be sure to also install it
 
 using [packer][packer]:
 
