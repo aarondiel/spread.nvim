@@ -71,8 +71,6 @@ end
 local function parse_fields_combine(fields, type)
 	local result = { }
 
-	vim.pretty_print(fields)
-
 	if node_options[type].padding then
 		table.insert(result, table.remove(fields, 1) .. " ")
 		table.insert(result, " " .. table.remove(fields, #fields))
@@ -101,8 +99,6 @@ local function parse_fields_combine(fields, type)
 			table.insert(result, #result, field)
 		end
 	end
-
-	vim.pretty_print(result)
 
 	if node_options[type].space_delimiter then
 		return { table.concat(result, " ") }
