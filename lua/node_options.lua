@@ -48,6 +48,8 @@ node_options.named_imports = node_options.object
 node_options.table_constructor = node_options.object
 node_options.array = node_options.object
 node_options.array_pattern = node_options.object
+node_options.list = node_options.object
+node_options.dictionary = node_options.object
 
 node_options.parameters = {
 	delimiter_padding = true,
@@ -58,6 +60,7 @@ node_options.arguments = node_options.parameters
 node_options.formal_parameters = node_options.parameters
 node_options.type_parameters = node_options.parameters
 node_options.type_arguments = node_options.parameters
+node_options.argument_list = node_options.parameters
 
 node_options.self_closing_tag = {
 	self_closing_tag = true,
