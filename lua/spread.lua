@@ -1,43 +1,17 @@
-local spread = {}
+local spread = { }
 local ts_utils = require("nvim-treesitter.ts_utils")
 local ts_indent = require("nvim-treesitter.indent")
-
-local containing_nodes = {
-	table_constructor = true,
-	arguments = true,
-	parameters = true,
-	formal_parameters = true,
-	array = true,
-	object = true,
-	type_arguments = true,
-	array_pattern = true,
-	named_imports = true
-}
-
-local starting_fields = {
-	["{"] = "{ ",
-	["["] = "[ ",
-	["("] = "(",
-	["<"] = "<"
-}
-
-local ending_fields = {
-	["}"] = " }",
-	["]"] = " ]",
-	[")"] = ")",
-	[">"] = ">"
-}
-
-local delimiters = {
-	[","] = ", "
-}
+local node_options = require("node_options")
 
 local function get_containing_node(node)
 	if node == nil then
 		return nil
 	end
 
-	if containing_nodes[node:type()] then
+	if (
+		node_options[node:type()] ~= nil and
+		node_options[node:type()].enabled
+	) then
 		return node
 	end
 
@@ -45,7 +19,7 @@ local function get_containing_node(node)
 end
 
 local function get_fields(node)
-	local fields = {}
+	local fields = { }
 
 	for child in node:iter_children() do
 		table.insert(
@@ -69,44 +43,72 @@ local function indent(str, n)
 	return string.rep("\t", n) .. str
 end
 
-local function parse_fields_spread(fields, indent_count)
-	local result = {}
+local function parse_fields_spread(fields, indent_count, type)
+	local result = { }
 
-	while #fields ~= 0 do
-		local field = table.remove(fields, 1)
+	table.insert(result, table.remove(fields, 1))
+	table.insert(
+		result,
+		indent(table.remove(fields, #fields), indent_count)
+	)
 
-		if starting_fields[field] ~= nil then
-			table.insert(result, field)
-		elseif delimiters[field] ~= nil then
-			result[#result] = result[#result] .. field
-		elseif ending_fields[field] ~= nil then
-			table.insert(result, indent(field, indent_count))
+	if node_options[type].tag_node then
+		result[1] = result[1] .. table.remove(fields, 1)
+	end
+
+
+	for _, field in ipairs(fields) do
+		if node_options[type].delimiters[field] ~= nil then
+			result[#result - 1] = result[#result - 1] .. field
 		else
-			table.insert(result, indent(field, indent_count + 1))
+			table.insert(result, #result, indent(field, indent_count + 1))
 		end
 	end
 
 	return result
 end
 
-local function parse_fields_combine(fields)
-	local result = ""
+local function parse_fields_combine(fields, type)
+	local result = { }
 
-	while #fields ~= 0 do
-		local field = table.remove(fields, 1)
+	vim.pretty_print(fields)
 
-		if starting_fields[field] ~= nil then
-			result = result .. starting_fields[field]
-		elseif delimiters[field] ~= nil then
-			result = result .. delimiters[field]
-		elseif ending_fields[field] ~= nil then
-			result = result .. ending_fields[field]
-		else
-			result = result .. field
+	if node_options[type].padding then
+		table.insert(result, table.remove(fields, 1) .. " ")
+		table.insert(result, " " .. table.remove(fields, #fields))
+	else
+		table.insert(result, table.remove(fields, 1))
+		table.insert(result, table.remove(fields, #fields))
+	end
+
+	if node_options[type].self_closing_tag then
+		result[1] = result[1] .. table.remove(fields, 1)
+
+		if not node_options[type].pad_self_closing_tag then
+			result[#result] = table.remove(fields, #fields) .. result[#result]
 		end
 	end
 
-	return { result }
+	for _, field in ipairs(fields) do
+		local pad_delimiter = (
+			node_options[type].delimiters[field] ~= nil and
+			node_options[type].delimiter_padding
+		)
+
+		if pad_delimiter then
+			table.insert(result, #result, field .. " ")
+		else
+			table.insert(result, #result, field)
+		end
+	end
+
+	vim.pretty_print(result)
+
+	if node_options[type].space_delimiter then
+		return { table.concat(result, " ") }
+	end
+
+	return { table.concat(result, "") }
 end
 
 function spread.out()
@@ -120,7 +122,7 @@ function spread.out()
 	local fields = get_fields(node)
 	local start_row, start_col, end_row, end_col = node:range()
 	local indent_count = get_indent_count(start_row + 1)
-	local replace_text = parse_fields_spread(fields, indent_count, {})
+	local replace_text = parse_fields_spread(fields, indent_count, node:type())
 
 	vim.api.nvim_buf_set_text(
 		0,
@@ -142,7 +144,7 @@ function spread.combine()
 
 	local fields = get_fields(node)
 	local start_row, start_col, end_row, end_col = node:range()
-	local replace_text = parse_fields_combine(fields)
+	local replace_text = parse_fields_combine(fields, node:type())
 
 	vim.api.nvim_buf_set_text(
 		0,
