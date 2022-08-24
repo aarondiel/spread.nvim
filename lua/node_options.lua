@@ -60,6 +60,7 @@ node_options.arguments = node_options.parameters
 node_options.formal_parameters = node_options.parameters
 node_options.type_parameters = node_options.parameters
 node_options.type_arguments = node_options.parameters
+node_options.parameter_list = node_options.parameters
 node_options.argument_list = node_options.parameters
 
 node_options.self_closing_tag = {
