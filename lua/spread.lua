@@ -3,15 +3,37 @@ local ts_utils = require("nvim-treesitter.ts_utils")
 local ts_indent = require("nvim-treesitter.indent")
 local node_options = require("node_options")
 
+local function flatten(array)
+	if type(array) ~= "table" then
+		return { array }
+	end
+
+	local result = { }
+
+	for _, element in ipairs(array) do
+		local flattened_element = flatten(element)
+
+		for _, nested_element in ipairs(flattened_element) do
+			table.insert(result, nested_element)
+		end
+	end
+
+	return result
+end
+
+local function is_node_of_interest(node)
+	return (
+		node_options[node:type()] ~= nil and
+		node_options[node:type()].enabled
+	)
+end
+
 local function get_containing_node(node)
 	if node == nil then
 		return nil
 	end
 
-	if (
-		node_options[node:type()] ~= nil and
-		node_options[node:type()].enabled
-	) then
+	if is_node_of_interest(node) then
 		return node
 	end
 
@@ -104,7 +126,9 @@ local function parse_fields_combine(fields, type)
 		return { table.concat(result, " ") }
 	end
 
-	return { table.concat(result, "") }
+	local concatinated_result = table.concat(result, "")
+
+	return vim.fn.split(concatinated_result, "\n")
 end
 
 function spread.out()
@@ -119,6 +143,37 @@ function spread.out()
 	local start_row, start_col, end_row, end_col = node:range()
 	local indent_count = get_indent_count(start_row + 1)
 	local replace_text = parse_fields_spread(fields, indent_count, node:type())
+
+	for i, _ in ipairs(replace_text) do
+		replace_text[i] = vim.fn.split(replace_text[i], "\n")
+	end
+
+	replace_text = flatten(replace_text)
+
+	vim.api.nvim_buf_set_text(
+		0,
+		start_row,
+		start_col,
+		end_row,
+		end_col,
+		replace_text
+	)
+end
+
+local function recursive_combine(node)
+	local children = ts_utils.get_named_children(node)
+
+	for _, child in ipairs(children) do
+		recursive_combine(child)
+	end
+
+	if not is_node_of_interest(node) then
+		return
+	end
+
+	local fields = get_fields(node)
+	local start_row, start_col, end_row, end_col = node:range()
+	local replace_text = parse_fields_combine(fields, node:type())
 
 	vim.api.nvim_buf_set_text(
 		0,
@@ -138,18 +193,7 @@ function spread.combine()
 		return
 	end
 
-	local fields = get_fields(node)
-	local start_row, start_col, end_row, end_col = node:range()
-	local replace_text = parse_fields_combine(fields, node:type())
-
-	vim.api.nvim_buf_set_text(
-		0,
-		start_row,
-		start_col,
-		end_row,
-		end_col,
-		replace_text
-	)
+	recursive_combine(node)
 end
 
 return spread
