@@ -21,15 +21,19 @@ local function flatten(array)
 	return result
 end
 
+local function is_node_of_interest(node)
+	return (
+		node_options[node:type()] ~= nil and
+		node_options[node:type()].enabled
+	)
+end
+
 local function get_containing_node(node)
 	if node == nil then
 		return nil
 	end
 
-	if (
-		node_options[node:type()] ~= nil and
-		node_options[node:type()].enabled
-	) then
+	if is_node_of_interest(node) then
 		return node
 	end
 
@@ -124,7 +128,7 @@ local function parse_fields_combine(fields, type)
 
 	local concatinated_result = table.concat(result, "")
 
-	return { vim.fn.substitute(concatinated_result, "\n", "", "g") }
+	return vim.fn.split(concatinated_result, "\n")
 end
 
 function spread.out()
@@ -156,11 +160,14 @@ function spread.out()
 	)
 end
 
-function spread.combine()
-	local starting_node = ts_utils.get_node_at_cursor()
-	local node = get_containing_node(starting_node)
+local function recursive_combine(node)
+	local children = ts_utils.get_named_children(node)
 
-	if node == nil then
+	for _, child in ipairs(children) do
+		recursive_combine(child)
+	end
+
+	if not is_node_of_interest(node) then
 		return
 	end
 
@@ -176,6 +183,17 @@ function spread.combine()
 		end_col,
 		replace_text
 	)
+end
+
+function spread.combine()
+	local starting_node = ts_utils.get_node_at_cursor()
+	local node = get_containing_node(starting_node)
+
+	if node == nil then
+		return
+	end
+
+	recursive_combine(node)
 end
 
 return spread
