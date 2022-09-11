@@ -74,10 +74,13 @@ local function parse_fields_spread(fields, indent_count, type)
 		indent(table.remove(fields, #fields), indent_count)
 	)
 
-	if node_options[type].tag_node then
+	for _ = 1, node_options[type].combine.start do
 		result[1] = result[1] .. table.remove(fields, 1)
 	end
 
+	for _ = 1, node_options[type].combine.stop do
+		result[#result] = table.remove(fields, #fields) .. result[#result]
+	end
 
 	for _, field in ipairs(fields) do
 		if node_options[type].delimiters[field] ~= nil then
@@ -91,42 +94,53 @@ local function parse_fields_spread(fields, indent_count, type)
 end
 
 local function parse_fields_combine(fields, type)
-	local result = { }
-
-	if node_options[type].padding then
-		table.insert(result, table.remove(fields, 1) .. " ")
-		table.insert(result, " " .. table.remove(fields, #fields))
-	else
-		table.insert(result, table.remove(fields, 1))
-		table.insert(result, table.remove(fields, #fields))
+	if #fields < 2 then
+		return fields
 	end
 
-	if node_options[type].self_closing_tag then
-		result[1] = result[1] .. table.remove(fields, 1)
+	local result = { "", "" }
 
-		if not node_options[type].pad_self_closing_tag then
-			result[#result] = table.remove(fields, #fields) .. result[#result]
-		end
+	for _ = 0, node_options[type].combine.start do
+		result[1] = result[1] .. table.remove(fields, 1)
+	end
+
+	for _ = 0, node_options[type].combine.stop do
+		result[#result] = table.remove(fields, #fields) .. result[#result]
+	end
+
+	if node_options[type].padding.start and #fields > 0 then
+		result[1] = result[1] .. " "
+	end
+
+	if node_options[type].padding.stop and #fields > 0 then
+		result[2] = " " .. result[2]
 	end
 
 	for _, field in ipairs(fields) do
-		local pad_delimiter = (
-			node_options[type].delimiters[field] ~= nil and
-			node_options[type].delimiter_padding
-		)
-
-		if pad_delimiter then
-			table.insert(result, #result, field .. " ")
+		if node_options[type].delimiters[field] then
+			result[#result - 1] = result[#result - 1] .. field
 		else
 			table.insert(result, #result, field)
 		end
 	end
 
-	if node_options[type].space_delimiter then
-		return { table.concat(result, " ") }
-	end
+	local concatinated_result = ""
 
-	local concatinated_result = table.concat(result, "")
+	if node_options[type].delimiter_padding then
+		local starting_string = table.remove(result, 1)
+		local middle_string = ""
+		local ending_string = table.remove(result, #result)
+
+		if #result > 0 then
+			middle_string = table.concat(result, " ")
+		end
+
+		concatinated_result = starting_string ..
+			middle_string ..
+			ending_string
+	else
+		concatinated_result = table.concat(result, "")
+	end
 
 	return vim.fn.split(concatinated_result, "\n")
 end
