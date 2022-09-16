@@ -66,6 +66,8 @@ node_options.block = {
 	}
 }
 
+node_options.array_type = node_options.block
+
 node_options.object = {
 	delimiter_padding = true,
 	delimiters = { [ "," ] = true },
@@ -81,7 +83,6 @@ node_options.named_imports = node_options.object
 node_options.table_constructor = node_options.object
 node_options.array = node_options.object
 node_options.array_pattern = node_options.object
-node_options.array_type = node_options.object
 node_options.array_expression = node_options.object
 node_options.list = node_options.object
 node_options.dictionary = node_options.object
