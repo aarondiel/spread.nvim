@@ -79,11 +79,13 @@ node_options.object = {
 
 node_options.object_type = node_options.object
 node_options.tuple_type = node_options.object
+node_options.tuple_expression = node_options.object
 node_options.named_imports = node_options.object
 node_options.table_constructor = node_options.object
 node_options.array = node_options.object
 node_options.array_pattern = node_options.object
 node_options.array_expression = node_options.object
+node_options.string_array = node_options.object
 node_options.list = node_options.object
 node_options.dictionary = node_options.object
 node_options.initializer_list = node_options.object
