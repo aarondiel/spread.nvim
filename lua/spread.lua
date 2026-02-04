@@ -1,5 +1,4 @@
 local spread = { }
-local ts_utils = require("nvim-treesitter.ts_utils")
 local ts_indent = require("nvim-treesitter.indent")
 local node_options = require("node_options")
 
@@ -46,7 +45,7 @@ local function get_fields(node)
 	for child in node:iter_children() do
 		table.insert(
 			fields,
-			vim.treesitter.query.get_node_text(child, 0)
+			vim.treesitter.get_node_text(child, 0)
 		)
 	end
 
@@ -146,7 +145,7 @@ local function parse_fields_combine(fields, type)
 end
 
 function spread.out()
-	local starting_node = ts_utils.get_node_at_cursor()
+	local starting_node = vim.treesitter.get_node()
 	local node = get_containing_node(starting_node)
 
 	if node == nil then
@@ -175,7 +174,7 @@ function spread.out()
 end
 
 local function recursive_combine(node)
-	local children = ts_utils.get_named_children(node)
+	local children = node:named_children()
 
 	for _, child in ipairs(children) do
 		recursive_combine(child)
@@ -200,7 +199,7 @@ local function recursive_combine(node)
 end
 
 function spread.combine()
-	local starting_node = ts_utils.get_node_at_cursor()
+	local starting_node = vim.treesitter.get_node()
 	local node = get_containing_node(starting_node)
 
 	if node == nil then
